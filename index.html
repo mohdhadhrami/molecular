@@ -115,14 +115,15 @@
 
         #canvas-container {
             width: 100%;
-            max-width: 1400px;
-            height: 1400px;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            max-width: 1120px;
+            height: 1120px;
+            background: #ffffff;
             border-radius: 20px;
             margin: 0 auto 40px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+            border: 2px solid #e0e0e0;
         }
 
         .info-panel {
@@ -330,6 +331,33 @@
             border: 2px solid #333;
         }
 
+        footer {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .copyright {
+            font-size: 1.2em;
+            line-height: 1.8;
+            font-weight: 500;
+        }
+
+        .copyright-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .copyright-title {
+            font-size: 1.1em;
+            opacity: 0.95;
+            font-style: italic;
+        }
+
         @media (max-width: 968px) {
             .container {
                 border-radius: 10px;
@@ -349,7 +377,7 @@
             }
 
             #canvas-container {
-                height: 600px;
+                height: 500px;
             }
 
             .controls {
@@ -365,11 +393,23 @@
 
         @media (max-width: 480px) {
             #canvas-container {
-                height: 400px;
+                height: 350px;
             }
 
             .molecule-list {
                 grid-template-columns: 1fr;
+            }
+
+            footer {
+                padding: 20px;
+            }
+
+            .copyright-name {
+                font-size: 1.2em;
+            }
+
+            .copyright-title {
+                font-size: 1em;
             }
         }
     </style>
@@ -459,6 +499,14 @@
                 </div>
             </div>
         </div>
+
+        <footer>
+            <div class="copyright">
+                <p>© 2025 جميع الحقوق محفوظة</p>
+                <p class="copyright-name">أ. محمد بن أحمد بن مطر الحضرمي</p>
+                <p class="copyright-title">معلم كيمياء</p>
+            </div>
+        </footer>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -762,7 +810,7 @@
 
             // Scene
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x1a1a2e);
+            scene.background = new THREE.Color(0xffffff);
 
             // Camera
             camera = new THREE.PerspectiveCamera(

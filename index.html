@@ -528,7 +528,7 @@
                     <div class="control-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="showLabels" checked>
-                            <span>إظهار الأسماء</span>
+                            <span>قيم السالبية الكهربائية</span>
                         </label>
                         <label class="checkbox-label">
                             <input type="checkbox" id="showAngles" checked>
@@ -1162,8 +1162,8 @@
                 transparent: true
             });
             const sprite = new THREE.Sprite(material);
-            // Position label in front and slightly above the atom
-            sprite.position.set(position[0], position[1] + 0.5, position[2] + 1.2);
+            // Position label directly above the atom (stays attached during rotation)
+            sprite.position.set(position[0], position[1] + 0.8, position[2]);
             sprite.scale.set(1.5, 0.75, 1);
 
             return sprite;

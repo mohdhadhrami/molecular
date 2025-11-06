@@ -1081,6 +1081,9 @@
                 createBond(pos1, pos2, bond.bondType);
             });
 
+            // Create angle displays
+            createAngles(data);
+
             // Create dipole arrow if polar
             if (data.polarity === "قطبي" && data.dipoleDirection) {
                 dipoleArrow = createDipoleArrow(data.dipoleDirection);
@@ -1161,6 +1164,96 @@
             const sprite = new THREE.Sprite(material);
             sprite.position.set(position[0], position[1] + 0.7, position[2]);
             sprite.scale.set(1.5, 0.75, 1);
+
+            return sprite;
+        }
+
+        function createAngles(data) {
+            // Find central atom (atom with most bonds)
+            const bondCounts = new Array(data.atoms.length).fill(0);
+            data.bonds.forEach(bond => {
+                bondCounts[bond.atom1]++;
+                bondCounts[bond.atom2]++;
+            });
+
+            // For each atom with 2+ bonds, calculate angles
+            data.atoms.forEach((atom, atomIndex) => {
+                const connectedBonds = data.bonds.filter(
+                    bond => bond.atom1 === atomIndex || bond.atom2 === atomIndex
+                );
+
+                if (connectedBonds.length >= 2) {
+                    // Get vectors from this atom to connected atoms
+                    const vectors = connectedBonds.map(bond => {
+                        const otherAtomIndex = bond.atom1 === atomIndex ? bond.atom2 : bond.atom1;
+                        const otherPos = data.atoms[otherAtomIndex].position;
+                        const thisPos = atom.position;
+                        return new THREE.Vector3(
+                            otherPos[0] - thisPos[0],
+                            otherPos[1] - thisPos[1],
+                            otherPos[2] - thisPos[2]
+                        ).normalize();
+                    });
+
+                    // Calculate angle between first two bonds (representative angle)
+                    if (vectors.length >= 2) {
+                        const angle = Math.acos(vectors[0].dot(vectors[1]));
+                        const angleDegrees = (angle * 180 / Math.PI).toFixed(1);
+
+                        // Create angle label
+                        const labelPos = [
+                            atom.position[0],
+                            atom.position[1] - 1.2,
+                            atom.position[2]
+                        ];
+
+                        const angleLabel = createAngleLabel(angleDegrees + '°', labelPos);
+                        angleLabels.push(angleLabel);
+                        moleculeGroup.add(angleLabel);
+                    }
+                }
+            });
+        }
+
+        function createAngleLabel(text, position) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 128;
+            canvas.height = 64;
+
+            // Draw background
+            context.fillStyle = 'rgba(102, 126, 234, 0.9)';
+            context.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.arcTo(x + width, y, x + width, y + radius, radius);
+                this.lineTo(x + width, y + height - radius);
+                this.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+                this.lineTo(x + radius, y + height);
+                this.arcTo(x, y + height, x, y + height - radius, radius);
+                this.lineTo(x, y + radius);
+                this.arcTo(x, y, x + radius, y, radius);
+                this.closePath();
+                return this;
+            };
+            context.roundRect(5, 5, 118, 54, 8).fill();
+
+            // Draw text
+            context.fillStyle = 'white';
+            context.font = 'bold 28px Arial';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({
+                map: texture,
+                transparent: true
+            });
+            const sprite = new THREE.Sprite(material);
+            sprite.position.set(position[0], position[1], position[2]);
+            sprite.scale.set(1, 0.5, 1);
 
             return sprite;
         }
@@ -1273,10 +1366,15 @@
 
         function updateDisplay() {
             const showLabels = document.getElementById('showLabels').checked;
+            const showAngles = document.getElementById('showAngles').checked;
             const showDipole = document.getElementById('showDipole').checked;
 
             labels.forEach(label => {
                 label.visible = showLabels;
+            });
+
+            angleLabels.forEach(label => {
+                label.visible = showAngles;
             });
 
             if (dipoleArrow) {

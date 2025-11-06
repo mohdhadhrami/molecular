@@ -1162,13 +1162,17 @@
                 transparent: true
             });
             const sprite = new THREE.Sprite(material);
-            sprite.position.set(position[0], position[1] + 0.7, position[2]);
+            // Position label in front and slightly above the atom
+            sprite.position.set(position[0], position[1] + 0.5, position[2] + 1.2);
             sprite.scale.set(1.5, 0.75, 1);
 
             return sprite;
         }
 
         function createAngles(data) {
+            // Use predefined angles from bondAngles field
+            const angles = data.bondAngles.replace(/°/g, '').split('،').map(a => a.trim());
+
             // Find central atom (atom with most bonds)
             const bondCounts = new Array(data.atoms.length).fill(0);
             data.bonds.forEach(bond => {
@@ -1176,43 +1180,44 @@
                 bondCounts[bond.atom2]++;
             });
 
-            // For each atom with 2+ bonds, calculate angles
-            data.atoms.forEach((atom, atomIndex) => {
-                const connectedBonds = data.bonds.filter(
-                    bond => bond.atom1 === atomIndex || bond.atom2 === atomIndex
-                );
-
-                if (connectedBonds.length >= 2) {
-                    // Get vectors from this atom to connected atoms
-                    const vectors = connectedBonds.map(bond => {
-                        const otherAtomIndex = bond.atom1 === atomIndex ? bond.atom2 : bond.atom1;
-                        const otherPos = data.atoms[otherAtomIndex].position;
-                        const thisPos = atom.position;
-                        return new THREE.Vector3(
-                            otherPos[0] - thisPos[0],
-                            otherPos[1] - thisPos[1],
-                            otherPos[2] - thisPos[2]
-                        ).normalize();
-                    });
-
-                    // Calculate angle between first two bonds (representative angle)
-                    if (vectors.length >= 2) {
-                        const angle = Math.acos(vectors[0].dot(vectors[1]));
-                        const angleDegrees = (angle * 180 / Math.PI).toFixed(1);
-
-                        // Create angle label
-                        const labelPos = [
-                            atom.position[0],
-                            atom.position[1] - 1.2,
-                            atom.position[2]
-                        ];
-
-                        const angleLabel = createAngleLabel(angleDegrees + '°', labelPos);
-                        angleLabels.push(angleLabel);
-                        moleculeGroup.add(angleLabel);
-                    }
+            // Find the atom with maximum bonds (central atom)
+            let centralAtomIndex = 0;
+            let maxBonds = 0;
+            bondCounts.forEach((count, index) => {
+                if (count > maxBonds) {
+                    maxBonds = count;
+                    centralAtomIndex = index;
                 }
             });
+
+            // Create angle labels for central atom
+            if (maxBonds >= 2) {
+                const centralAtom = data.atoms[centralAtomIndex];
+
+                // If multiple angles, show them
+                if (angles.length > 1) {
+                    angles.forEach((angle, index) => {
+                        const labelPos = [
+                            centralAtom.position[0],
+                            centralAtom.position[1] - 1.2 - (index * 0.6),
+                            centralAtom.position[2]
+                        ];
+                        const angleLabel = createAngleLabel(angle + '°', labelPos);
+                        angleLabels.push(angleLabel);
+                        moleculeGroup.add(angleLabel);
+                    });
+                } else {
+                    // Single angle
+                    const labelPos = [
+                        centralAtom.position[0],
+                        centralAtom.position[1] - 1.2,
+                        centralAtom.position[2]
+                    ];
+                    const angleLabel = createAngleLabel(angles[0] + '°', labelPos);
+                    angleLabels.push(angleLabel);
+                    moleculeGroup.add(angleLabel);
+                }
+            }
         }
 
         function createAngleLabel(text, position) {
